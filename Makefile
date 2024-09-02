@@ -12,6 +12,11 @@ install_pip:
 run:
 	poetry run python ./ragas_entry_point.py
 
+list_instances:
+	sh ./scripts/cur_instances.sh
+stop_instances:
+	sh ./scripts/stop_instances.sh
+
 clean:
 	# TODO: 
 	echo "TODO: not yet implemented"
