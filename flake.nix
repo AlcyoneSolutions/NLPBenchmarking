@@ -26,10 +26,10 @@
             final: prev: {
               pyarrow = prev.pyarrow.override{
                 preferWheel = true;
-                postInstall = ''
-                  rm -rf $out/lib/python3.10/site-packages/benchmarks/__pycache__
-                '';
               };
+              maturin = prev.maturin.overrideAttrs(old: {
+                nativeBuildInputs = old.nativeBuildInputs ++ [ pkgs.cargo pkgs.rustc ];
+              });
               jiter = prev.jiter.override {
                 preferWheel = true;
               };
@@ -45,12 +45,16 @@
               ragas = prev.ragas.override {
                 preferWheel = true;
               };
-              pysbd = prev.pysbd.override {
+              pysbd = prev.pysbd.overridePythonAttrs(old: rec {
                 preferWheel = true;
                 postInstall = ''
-                  rm -rf $out/lib/python3.10/site-packages/benchmarks/__pycache__
+                    echo "Cleaning up __pycache__ directories..."
+                    rm -rf $out/lib/python3.10/site-packages/benchmarks
+
+                    # Optionally call the old postInstall hook if it exists
+                    ${old.postInstall or ""}
                 '';
-              };
+              });
             }
           );
         };
