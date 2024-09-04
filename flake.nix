@@ -65,11 +65,19 @@
         buildInputs = [
           pkgs.git
           pkgs.nodejs
+
+          # For Reading Toml Files
+          pkgs.yq
+
+          # For all gcloud related things
+          pkgs.google-cloud-sdk
+
+          # For all other python dependencies.
           env
         ];
 
         shellHook = ''
-          echo "Welcome to the development shell with Poetry!"
+          echo "Welcome to the ITL Benchmarking Environment."
           export MY_ENV_VAR="value"
         '';
       };
