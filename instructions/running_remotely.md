@@ -30,11 +30,7 @@ If you do that, however, you are on your own.
 
 Once in your shiny new shell. We will proceed to initialize a gcloud environment:
 
-```sh
-gcloud init
-```
-
-Select the project that corresponds to this directory.
+Thats pretty much it. You automatically downloaded all dependencies and setup the google acocunt you need to run your experiments.
 
 You can now run all commands listed under the `Makefile`.
 

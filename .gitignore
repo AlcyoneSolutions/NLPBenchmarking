@@ -48,3 +48,5 @@ lib64/
 parts/
 sdist/
 var/
+~/.cache/nvim
+service_account.json

@@ -78,7 +78,9 @@
 
         shellHook = ''
           echo "Welcome to the ITL Benchmarking Environment."
-          export MY_ENV_VAR="value"
+          source ./scripts/initialize_scripts.sh
+          # Use green escape codes
+          echo -e "\033[0;32mYou have been logged in as $ACCOUNT_NAME\033[0m"
         '';
       };
 
