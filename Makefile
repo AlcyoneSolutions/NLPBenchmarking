@@ -18,6 +18,8 @@ stop_instances:
 	sh ./scripts/stop_instances.sh
 start_and_sync:
 	sh ./scripts/start_and_sync.sh
+create_new_instance:
+	sh ./scripts/create_new_instance.sh
 
 clean:
 	# TODO: 
