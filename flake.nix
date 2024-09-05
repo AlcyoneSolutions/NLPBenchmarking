@@ -21,7 +21,7 @@
             my-app = ./src;
           };
           python = pkgs.python310;
-          # preferWheels = true;
+          preferWheels = true;
           overrides = poetry2nix.overrides.withDefaults (
             final: prev: {
               pyarrow = prev.pyarrow.override{
