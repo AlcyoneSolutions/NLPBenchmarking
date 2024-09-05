@@ -16,11 +16,11 @@ CURRENT_USER=$(gcloud config get-value account)
 echo ":: Looking fo instances for user $CURRENT_USER"
 
 # TOREM: b4 production
-# AVAILABLE_INSTANCES=$(gcloud compute instances list --filter="serviceAccounts[0].email=$CURRENT_USER AND status=TERMINATED" --format=json)
-# INSTANCE_NAMES_AND_METADATA=$(echo "$AVAILABLE_INSTANCES" | jq -r '.[] | select(.metadata.items[].key == "gce-container-declaration") | {name, metadata: .metadata.items[0].value}')
+AVAILABLE_INSTANCES=$(gcloud compute instances list --filter="serviceAccounts[0].email=$CURRENT_USER AND status=TERMINATED" --format=json)
+INSTANCE_NAMES_AND_METADATA=$(echo "$AVAILABLE_INSTANCES" | jq -r '.[] | select(.metadata.items[].key == "gce-container-declaration") | {name, metadata: .metadata.items[0].value}')
 
 # Base64 to get nice rows
-INSTANCE_NAMES_AND_METADATA=$(cat instances.json | jq -r '.[] | select(.metadata.items[].key == "gce-container-declaration") | {name, metadata: .metadata.items[0].value} | @base64')
+# INSTANCE_NAMES_AND_METADATA=$(cat instances.json | jq -r '.[] | select(.metadata.items[].key == "gce-container-declaration") | {name, metadata: .metadata.items[0].value} | @base64')
 # echo "$INSTANCE_NAMES_AND_METADATA" > IN_ME.json
 # Propmpt Choice to user
 echo "::The following instances are available to you:"
