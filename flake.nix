@@ -63,6 +63,9 @@
       {
         devShells.default = pkgs.mkShell {
         buildInputs = [
+          # For all other python dependencies.
+          env
+
           pkgs.git
           pkgs.nodejs
 
@@ -72,14 +75,11 @@
           # For all gcloud related things
           pkgs.google-cloud-sdk
 
-          # For all other python dependencies.
-          env
         ];
 
         shellHook = ''
           echo "Welcome to the ITL Benchmarking Environment."
           source ./scripts/initialize_scripts.sh
-          # Use green escape codes
           echo -e "\033[0;32mYou have been logged in as $ACCOUNT_NAME\033[0m"
         '';
       };
