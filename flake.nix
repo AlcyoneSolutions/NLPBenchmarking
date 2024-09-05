@@ -61,27 +61,33 @@
 
       in
       {
-        devShells.default = pkgs.mkShell {
-        buildInputs = [
-          # For all other python dependencies.
-          env
+      devShells.default = pkgs.mkShell {
+          buildInputs = [
+            # For all other python dependencies.
+            env
 
-          pkgs.git
-          pkgs.nodejs
+            # For my sanity
+            pkgs.zsh
 
-          # For Reading Toml Files
-          pkgs.yq
+            pkgs.git
+            pkgs.nodejs
 
-          # For all gcloud related things
-          pkgs.google-cloud-sdk
+            # For Reading Toml Files
+            pkgs.yq
 
-        ];
+            # For all gcloud related things
+            pkgs.google-cloud-sdk
 
-        shellHook = ''
-          echo "Welcome to the ITL Benchmarking Environment."
-          source ./scripts/initialize_scripts.sh
-          echo -e "\033[0;32mYou have been logged in as $ACCOUNT_NAME\033[0m"
-        '';
+          ];
+
+          shellHook = ''
+            export SHELL=${pkgs.zsh}/bin/zsh
+            export INDEVSHELL=1
+            echo "Welcome to the ITL Benchmarking Environment."
+            source ./scripts/initialize_scripts.sh
+            echo -e "\033[0;32mYou have been logged in as $ACCOUNT_NAME\033[0m"
+            zsh
+          '';
       };
 
         # Shell for poetry.

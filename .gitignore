@@ -50,3 +50,4 @@ sdist/
 var/
 ~/.cache/nvim
 service_account.json
+instances.json
