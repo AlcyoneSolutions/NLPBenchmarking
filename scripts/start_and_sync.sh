@@ -1,67 +1,93 @@
 #!/bin/bash
 
+
+_get_metadata_elem(){
+  ROWS="$1"
+  TARGET_KEY="$2"
+  return_value=""
+  # echo "ROWS: ${ROWS}" >> log.log
+  IFS=$'\n' 
+  while read -r elem; do
+    CUR_KEY=$(echo ${elem} | base64 --decode | jq -r '.key')
+    CUR_VALUE=$(echo ${elem} | base64 --decode | jq -r '.value')
+    # echo "TARGET (${TARGET_KEY}): eleme: ${elem}" >> log.log
+    # echo "TARGET (${TARGET_KEY}): CUR_KEY: ${CUR_KEY}" >> log.log
+    # echo "TARGET (${TARGET_KEY}): CUR_VALUE: ${CUR_VALUE}" >> log.log
+    if [ "$CUR_KEY" == "$TARGET_KEY" ]; then
+      return_value="$CUR_VALUE"
+      break
+    fi
+  done <<< "$ROWS"
+  echo "$return_value" #CHECK:
+}
+
 # USER Constants
 CONTAIMER_TAG="asia-east1-docker.pk.dev/optical-loop-431606-m6/kb-reistry/barebones1 "
 
 # Constants
 LOCAL_ROOT_DIR=$(pwd)
-EXCLUE_ARRY=( "data" "logs" "notebooks" "resources" "scripts" "windows_requirements.txt" "Makefile" ".gitignore" ".dockerignore" "docker-compose.yml" "Dockerfile" "README.md" "LICENSE" )
-EXCLUDE_STRING=$(printf ",%s" "${EXCLUE_ARRY[@]}")
-# First parameter is the python command to run remotely
 REMOTE_COMMAND=$0
+FILEW_EXCLUDE_PATTERNS="./.rsync_exclude" # Assuming run from root of repo
+# Set Repo Root dir to be the parent of the first .git/ directory in the path
+REPO_ROOT_DIR=$(git rev-parse --show-toplevel)
 
 # Remote data
 CURRENT_USER=$(gcloud config get-value account)
 # Get non-running instances
-echo ":: Looking fo instances for user $CURRENT_USER"
-
+echo ":: Looking for instances for user $CURRENT_USER"
 # TOREM: b4 production
-AVAILABLE_INSTANCES=$(gcloud compute instances list --filter="serviceAccounts[0].email=$CURRENT_USER AND status=TERMINATED" --format=json)
-INSTANCE_NAMES_AND_METADATA=$(echo "$AVAILABLE_INSTANCES" | jq -r '.[] | select(.metadata.items[].key == "gce-container-declaration") | {name, metadata: .metadata.items[0].value}')
+AVAILABLE_INSTANCES=$(gcloud compute instances list --filter="status=TERMINATED" --format=json)
+INSTANCE_NAMES_AND_METADATA=$(echo "$AVAILABLE_INSTANCES" | jq -r '.[] | select(.metadata.items[].key == "gce-container-declaration") | {name, metadata: .metadata, zone: .zone} | @base64')
+echo "$INSTANCE_NAMES_AND_METADATA"  | base64 --decode > instances.json 
 
-# Base64 to get nice rows
-# INSTANCE_NAMES_AND_METADATA=$(cat instances.json | jq -r '.[] | select(.metadata.items[].key == "gce-container-declaration") | {name, metadata: .metadata.items[0].value} | @base64')
-# echo "$INSTANCE_NAMES_AND_METADATA" > IN_ME.json
-# Propmpt Choice to user
-echo "::The following instances are available to you:"
-
-# Organize Data Neatly with Escape Codes into a single row
-# row_strings = ()
+# This will be our options
 declare -a row_strings
 
 # CHECK: Why the need of base64 encoding
-for row in $(echo "${INSTANCE_NAMES_AND_METADATA}"); do
+echo "Processing ${INSTANCE_NAMES_AND_METADATA[@]}" >> log.log
+counter=0
+for row in $INSTANCE_NAMES_AND_METADATA; do
+    decoded_row=$(echo "${row}" | base64 --decode)
 
-    echo "Processing ${row}"
-    # When we have the information in .
-    ROW_NAME=$(echo "${row}" | base64 --decode | jq -r ".name")
+    metadata_items=$(jq -r '.metadata.items[] | @base64' <<< "$decoded_row")
+    CREATOR=$(_get_metadata_elem "$metadata_items" "creator")
 
-    # NOTE: This usues unofficial API so it might not work for long.
-    # If something breaks and you dont know why this is a good place to look into. 
-    ## Metadata is in TOML format. We need to procure spec.containers.image
-    _row_metadata=$(echo "${row}" | jq -r ".metadata")
+    if [ "$CURRENT_USER" != "$CREATOR" ]; then
+      continue
+    fi
+    # Otherwise add the info to row_strings
+    INSTANCE_NAME=$(echo "${row}" | base64 --decode | jq -r ".name")
 
-    IMAGE_NAME = $(echo "${_row_metadata}" | toml get spec.containers.image)
+    # NOTE: This is not official API So it may break
+    gce_container_declaration=$(_get_metadata_elem "$metadata_items" "gce-container-declaration")
 
-    # Lets organize it pretty. Well tabed and the like lets pass it to a program to show tabularity
-    # sh -c "echo -e \"$ROW_NAME\t$IMAGE_NAME\""
+    # NOTE: Here we make the assumption that there is only one container in the yaml
+    IMAGE_NAME=$(echo "${gce_container_declaration}" | yq -r '.spec.containers[0].image')
+    clean_name=$(echo "$IMAGE_NAME" | awk -F"/" '{print $NF}')
+
+    ZONE_NAME=$( jq -r ".zone" <<< "$decoded_row" | awk -F"/" '{print $NF}')
+
+    row_strings+=("${counter}\t${INSTANCE_NAME}\t${ZONE_NAME}\t${IMAGE_NAME}\n")
+    counter=$((counter+1))
 
 done
 
-echo -e "\033[0;33mPlease select one to use:\033[0m"
-PS3="Select instance: "
-exit
-select INSTANCE in $all_names; do
-    echo "You selected $INSTANCE"
-    gcloud compute instances start $INSTANCE --zone=$ZONE
-    break
-done
+echo -e "\033[0;33m::The following instances are available to you: \033[0m"
+# Table Clumn titles
+COLUMN_TITLES="\033[0;33mID\tInstance Name\t Zone\tImage Name\033[0m"
+OUTPUT=$(echo -e "$COLUMN_TITLES\n${row_strings[@]}")
+column -t -s $'\t'  <<< "$OUTPUT"
 
-echo -e "\033[0;33mPlease select one to use:\033[0m"
-PS3="Select instance: "
-select INSTANCE in $AVAILABLE_INSTANCES; do
-    echo "You selected $INSTANCE"
-    gcloud compute instances start $INSTANCE --zone=$ZONE
-    break
-done
+# Get User Inputs and resulting info
+read -p "Enter the number of the instance you want to use: " INSTANCE_NUM
+instance_name=$(echo -e "${row_strings[$INSTANCE_NUM]}" | cut -d$'\t' -f2)
+instance_zone=$(echo -e "${row_strings[$INSTANCE_NUM]}" | cut -d$'\t' -f3)
 
+## Important Call Here
+gcloud_command="gcloud compute instances start ${instance_name} --zone=${instance_zone}"
+echo -e "\033[0;33m Running '${gcloud_command}'\033[0m"
+$gcloud_command
+# Check on result
+if [ $? -neq 0 ]; then
+  echo -e "\033[0;31m❌Instance '${instance_name}' failed to start\033[0m"
+fi
