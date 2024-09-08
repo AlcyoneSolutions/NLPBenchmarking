@@ -1,6 +1,6 @@
 # Will stop all instances linked to this user.
 CURRENT_USER=$(gcloud config get-value account)
-ALL_INSTANCES=$(gcloud compute instances list --filter="serviceAccounts[0].email=$CURRENT_USER AND status=RUNNING" --format=json)
+ALL_INSTANCES=$(gcloud compute instances list --filter="status=RUNNING" --format=json)
 echo "$ALL_INSTANCES" > instances.json
 
 # Check if empty. (Return [] if empty)
@@ -16,11 +16,31 @@ for row in $(echo "${ALL_INSTANCES}" | jq -r '.[] | @base64'); do
      echo ${row} | base64 --decode | jq -r ${1}
     }
 
+    # echo "Going through the row: ${row}"
+
    INSTANCE=$(_jq '.name')
    ZONE=$(_jq '.zone')  # This returns  "https://www.googleapis.com/compute/v1/projects/<project_name>/zones/<desired_zone>"
    # CHECK: I am unsure this is robust enough. Might fail if url is not in the format above
-   ZONE=$(echo $ZONE | cut -d "/" -f 9)
+   
+   ITEMS=$(echo ${row} | base64 --decode | jq -r '.metadata.items[] | @base64')
 
+   for row in "$ITEMS"; do
+     _jq() {
+       echo ${row} | base64 --decode | jq -r ${1}
+     }
+     key=$(_jq '.key')
+     if [ "$key" == "creator" ]; then
+       owner=$(_jq '.value')
+       break
+     fi
+   done
+    
+   # Ensure that creator is the same as the current user
+   if [ "$CURRENT_USER" != "$owner" ]; then
+     continue
+   fi
+
+   echo -e "Stopping $INSTANCE at $ZONE for User $CURRENT_USER"
    gcloud compute instances stop $INSTANCE --zone=$ZONE
    # Check if returns an error
    if [ $? -ne 0 ]; then
