@@ -6,8 +6,8 @@ CONTAINER_IMAGE="asia-east1-docker.pkg.dev/optical-loop-431606-m6/kb-registry/nl
 DISK_SIZE="100" # GB
 USER=$(gcloud config get-value account)
 TAGS="benchmarking-env,http-server,https-server"
-METADATA="gce-container-declaration=container-image:$CONTAINER_IMAGE"
-METADATA="$METADATA,creator:$USER"
+METADATA="gce-container-image=$CONTAINER_IMAGE"
+METADATA="$METADATA,creator=$USER"
 
 echo -e "\033[0;33m"
 read -p "Please enter the name of the instance: " INSTANCE_NAME
