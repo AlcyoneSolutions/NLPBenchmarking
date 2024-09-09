@@ -1,6 +1,8 @@
 # Will stop all instances linked to this user.
 CURRENT_USER=$(gcloud config get-value account)
-ALL_INSTANCES=$(gcloud compute instances list --filter="serviceAccounts[0].email=$CURRENT_USER AND status=RUNNING" --format=json)
+ALL_INSTANCES=$(gcloud compute instances list --format=json)
+# This is a hacky way of doing but I want to keep it simple
+ALL_CURUSER_INSTANCES=$(echo "$ALL_INSTANCES" | jq --arg CURRENT_USER "$CURRENT_USER" -r '.[] | select(.metadata.items[].key == "creator" and .metadata.items[].value == $CURRENT_USER) | @base64')
 
 # Check if empty. (Return [] if empty)
 if [ "$ALL_INSTANCES" == "[]" ]; then
@@ -26,13 +28,17 @@ else
      fi
 
      # Ask for confirmation
-     read -p "Are you sure you want to stop $INSTANCE at $ZONE? [y/N]: " CONFIRM
+     read -p "Would you like to delete intance '$INSTANCE' at zone $ZONE? [y/N]: " CONFIRM
      echo -e "\033[0m"
      if [ "$CONFIRM" != "y" ]; then
-       echo "Exiting. If you want to change this variable, please set them as envvars before running this script."
+       echo "Not stopping instance '$INSTANCE' at zone $ZONE"
        continue
      fi
-     gcloud compute instances stop $INSTANCE --zone=$ZONE
+
+     # The Main Command
+     gcloud_cmd="gcloud compute instances delete $INSTANCE --zone=$ZONE"
+     echo -e "\033[0;33m Running '${gcloud_cmd}'\033[0m"
+     $gcloud_cmd
      # Check if returns an error
      if [ $? -ne 0 ]; then
        # Use red escape sequence to print in red
