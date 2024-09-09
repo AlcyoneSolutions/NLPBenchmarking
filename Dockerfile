@@ -8,6 +8,7 @@ RUN apt update && apt install -y --no-install-recommends \
         neovim \
         curl \
         git \
+        rsync \
         openssh-server \
         gcc &&\
     apt clean &&\
