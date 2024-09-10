@@ -1,4 +1,5 @@
 
+include .env
 .PHONY: all
 all: run
 
@@ -24,6 +25,8 @@ create_new_instance:
 	sh ./scripts/create_new_instance.sh
 sync:
 	sh ./scripts/simply_sync.sh
+docker:
+	docker buildx build -t $(NAME):$(TAG) .
 
 clean:
 	# TODO: 
