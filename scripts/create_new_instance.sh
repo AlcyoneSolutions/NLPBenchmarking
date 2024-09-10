@@ -2,8 +2,8 @@
 # Ask for name of instance
 ZONE="asia-east1-c"
 MACHINE_TYPE="e2-standard-4"
-CONTAINER_IMAGE="asia-east1-docker.pkg.dev/optical-loop-431606-m6/kb-registry/nlp-benchmarks:0.1.1"
-DISK_SIZE="100" # GB
+CONTAINER_IMAGE="asia-east1-docker.pkg.dev/optical-loop-431606-m6/kb-registry/nlp-benchmarks:0.1.2"
+DISK_SIZE="200" # GB
 USER=$(gcloud config get-value account)
 TAGS="benchmarking-env,http-server,https-server"
 METADATA="gce-container-image=$CONTAINER_IMAGE"

@@ -35,15 +35,14 @@ RUN chmod 600 /home/itl-operator/.ssh/authorized_keys
 RUN chmod 700 /home/itl-operator/.ssh
 WORKDIR /etc/sshd
 RUN ssh-keygen -A
-RUN service ssh restart
 
+RUN echo '#!/bin/bash\n\
+\n\
+# Start the SSH server\n\
+service ssh start\n\
+\n\
+# Start Jupyter Notebook\n\
+jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root' > /start.sh && \
+    chmod +x /start.sh
 
-WORKDIR /opt/nlpbench
-
-
-USER itl-operator
-WORKDIR /opt/nlpbench
-EXPOSE 8888
-EXPOSE 42022
-
-ENTRYPOINT ["jupyter", "notebook", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root"]
+ENTRYPOINT ["/start.sh"]
