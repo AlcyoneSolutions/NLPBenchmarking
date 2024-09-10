@@ -22,6 +22,8 @@ start_and_sync:
 	sh ./scripts/start_and_sync.sh
 create_new_instance:
 	sh ./scripts/create_new_instance.sh
+sync:
+	sh ./scripts/simply_sync.sh
 
 clean:
 	# TODO: 
