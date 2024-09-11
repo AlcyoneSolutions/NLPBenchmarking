@@ -1,0 +1,15 @@
+data
+.venv
+logs
+notebooks
+resources
+scripts
+windows_requirements.txt
+Makefile
+.gitignore
+.dockerignore
+docker-compose.yml
+.git/
+Dockerfile
+README.md
+LICENSE

@@ -48,3 +48,8 @@ lib64/
 parts/
 sdist/
 var/
+~/.cache/nvim
+service_account.json
+instances.json
+collective_key.pub
+collective_key
