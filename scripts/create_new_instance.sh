@@ -35,7 +35,8 @@ gcloud compute instances create-with-container \
     --tags=$TAGS \
     --metadata=$METADATA \
     --boot-disk-size=$DISK_SIZE \
-    --container-arg="--publish=8888:8888 --publish=42022:42022"
+    --container-arg="--publish=8888:8888"
+    --container-arg="--publish=42022:42022"
 
 if [ $? -ne 0 ]; then
   echo -e "\033[0;31m ❌ Instance $INSTANCE_NAME failed to create\033[0m"
