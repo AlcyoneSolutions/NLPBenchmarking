@@ -28,7 +28,7 @@ sync:
 watch:
 	sh ./scripts/watch_files.sh $(INST) $(ZONE)
 docker:
-	docker buildx build -t $(NAME):$(TAG) .
+	docker buildx build -t $(DOCKER_CONTAINER_NAME):$(DOCKER_CURRENT_TAG) .
 
 clean:
 	# TODO: 
