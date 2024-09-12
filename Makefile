@@ -25,6 +25,8 @@ create_new_instance:
 	sh ./scripts/create_new_instance.sh
 sync:
 	sh ./scripts/simply_sync.sh
+watch:
+	sh ./scripts/watch_files.sh $(INST) $(ZONE)
 docker:
 	docker buildx build -t $(NAME):$(TAG) .
 

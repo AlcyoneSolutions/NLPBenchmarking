@@ -17,11 +17,12 @@ DESIRED_INSTANCE=$1
 INSTANCE_ZONE=$2
 
 # We will now get the public ip.
+echo -e "\033[0;33m::Getting public IP of ${DESIRED_INSTANCE} at zone ${INSTANCE_ZONE}\033[0m"
 PUBLIC_IP=$(gcloud compute instances describe "$DESIRED_INSTANCE" --zone="$INSTANCE_ZONE" --format=json | jq -r '.networkInterfaces[0].accessConfigs[0].natIP')
 
 # We will ensure that we have access to the remote with a specific key.
 gcloud compute ssh "$DESIRED_INSTANCE" --zone="$INSTANCE_ZONE" --command="docker logs \$(docker ps -l -q)" -- -L 8888:localhost:8888 -L 42022:localhost:42022 -f -N
-echo -e "\033[0;33m::Set ssh tunnel to ${DESIRED_INSTANCE}::${PUBLIC_IP}:8888\033[0m"
+echo -e "\033[0;33m::Set ssh tunnel to ${DESIRED_INSTANCE}::${PUBLIC_IP}:8888/42022\033[0m"
 
 # Now rsync will be running in the background between these two directories. 
 REMOTE_ROOT_DIR="/opt/nlpbench"
