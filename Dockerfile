@@ -36,6 +36,7 @@ RUN chmod 700 /home/itl-operator/.ssh
 WORKDIR /etc/sshd
 RUN ssh-keygen -A
 
+WORKDIR /opt/nlpbench
 RUN echo '#!/bin/bash\n\
 \n\
 # Start the SSH server\n\

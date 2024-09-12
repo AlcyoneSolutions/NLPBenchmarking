@@ -85,6 +85,8 @@
             export INDEVSHELL=1
             # First decode everything
             sh ./scripts/decrypt.sh
+            # Sourcing Environment Variables
+            source .env
             echo "Welcome to the ITL Benchmarking Environment."
             source ./scripts/initialize_scripts.sh
             echo -e "\033[0;32mYou have been logged in as $ACCOUNT_NAME\033[0m"
