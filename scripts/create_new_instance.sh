@@ -3,7 +3,7 @@
 ZONE="asia-east1-c"
 MACHINE_TYPE="e2-standard-4"
 # TODO: Pull this from .venv and purge this.
-CONTAINER_IMAGE="asia-east1-docker.pkg.dev/optical-loop-431606-m6/kb-registry/nlp-benchmarks:0.1.2"
+CONTAINER_IMAGE="asia-east1-docker.pkg.dev/optical-loop-431606-m6/kb-registry/nlp-benchmarks:0.1.3"
 DISK_SIZE="200" # GB
 USER=$(gcloud config get-value account)
 TAGS="benchmarking-env,http-server,https-server"
@@ -36,8 +36,6 @@ gcloud compute instances create-with-container \
     --tags=$TAGS \
     --metadata=$METADATA \
     --boot-disk-size=$DISK_SIZE \
-    --container-arg="--publish=8888:8888"
-    --container-arg="--publish=42022:42022"
 
 if [ $? -ne 0 ]; then
   echo -e "\033[0;31m ❌ Instance $INSTANCE_NAME failed to create\033[0m"
